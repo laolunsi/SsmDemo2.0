@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.eknows.model.dao.UserDAO">
+    <select id="find" resultType="com.eknows.model.bean.entity.User">
+        SELECT  id, name, role, address, ip, lastLoginTime
+        FROM user
+        WHERE name = #{name} AND password = #{password}
+    </select>
+
+    <select id="findAll" resultType="com.eknows.model.bean.entity.User">
+        SELECT  id, name, role, address, ip, lastLoginTime
+        FROM user
+    </select>
+
+    <select id="findById" resultType="com.eknows.model.bean.entity.User">
+        SELECT id, name, role, address, ip, lastLoginTime
+        FROM user
+        WHERE id = #{id}
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM user
+        WHERE id = #{id}
+    </delete>
+
+    <insert id="save" parameterType="com.eknows.model.bean.entity.User">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO user
+        <trim prefix="(" suffixOverrides="," suffix=")">
+            <if test="name != null">name, </if>
+            <if test="password != null">password, </if>
+            <if test="role != null">role, </if>
+            <if test="address != null">address, </if>
+            <if test="ip != null">ip, </if>
+            <if test="lastLoginTime != null">lastLoginTime </if>
+        </trim>
+
+        <trim prefix="VALUES (" suffixOverrides="," suffix=")">
+            <if test="name != null">#{name}, </if>
+            <if test="password != null">#{password}, </if>
+            <if test="role != null">#{role}, </if>
+            <if test="address != null">#{address}, </if>
+            <if test="ip != null">#{ip}, </if>
+            <if test="lastLoginTime != null">#{lastLoginTime} </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="com.eknows.model.bean.entity.User">
+        UPDATE user
+        <set>
+            <if test="name != null">name = #{name}, </if>
+            <if test="password != null">password = #{password}, </if>
+            <if test="role != null">role = #{role}, </if>
+            <if test="address != null">address = #{address}, </if>
+            <if test="ip != null">ip = #{ip}, </if>
+            <if test="lastLoginTime != null">lastLoginTime = #{lastLoginTime} </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+</mapper>

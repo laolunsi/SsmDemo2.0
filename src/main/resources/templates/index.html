@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSM Demo</title>
+
+    <!-- 从官网下载vus.js、 element的js和css等文件并引入 -->
+    <!-- 可以使用js原生方式引入，也可以使用thymeleaf模板语法进行引入 -->
+    <!--
+        <script th:src="@{/vue.min.js}"></script>
+        <script th:src="@{/vue-resource.min.js}"></script>
+        <script th:src="@{/element-ui/lib/index.js}"></script>
+        <link rel="stylesheet" th:href="@{/element-ui/lib/theme-chalk/index.css}" />
+    -->
+
+    <!-- 使用js原生方式引入 -->
+    <script src="./jquery-3.3.1.min.js"></script>
+    <script src="./vue.min.js"></script>
+    <script src="./vue-resource.min.js"></script>
+    <script src="./element-ui/lib/index.js"></script>
+    <link rel="stylesheet" href="./element-ui/lib/theme-chalk/index.css"/>
+
+    <!-- elementUI需要网站具有favicon.ico，此处使用默认的spring图标（不要问我这个图标在哪，我也不知道o(╥﹏╥)o） -->
+    <link rel="icon" type="image/ico" href="./favicon.ico">
+</head>
+<body>
+<div id="login" style="text-align: center;">
+    <div style="margin: 120px auto 0;width: 500px;">
+        <el-container>
+            <el-header>用户管理系统</el-header>
+            <el-main>
+                <el-form ref="loginForm" :model="loginForm" v-show="loginVisible" :rules="loginRules"
+                         hide-required-asterisk="false" label-width="80px">
+                    <el-form-item label="用户名" prop="name">
+                        <el-input v-model="loginForm.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码" prop="password">
+                        <el-input type="password" v-model="loginForm.password"></el-input>
+                    </el-form-item>
+
+                    <el-form-item>
+                        <el-button type="primary" v-on:click="loginSubmit">登录</el-button>
+                    </el-form-item>
+                    还没有账户？立即<a @click="switchForm('loginForm')">注册</a>
+                </el-form>
+
+                <el-form ref="registerForm" :model="registerForm" v-show="registerVisible" :rules="registerRules" label-width="80px">
+                    <el-form-item label="用户名" prop="name">
+                        <el-input v-model="registerForm.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码" prop="password">
+                        <el-input type="password" v-model="registerForm.password"></el-input>
+                    </el-form-item>
+                    <el-form-item label="重复密码" prop="rePassword">
+                        <el-input type="password" v-model="registerForm.rePassword"></el-input>
+                    </el-form-item>
+                    <el-form-item label="地址" prop="address">
+                        <el-input v-model="registerForm.address"></el-input>
+                    </el-form-item>
+                    <el-form-item label="个人网站" prop="ip">
+                        <el-input v-model="registerForm.ip"></el-input>
+                    </el-form-item>
+
+                    <el-form-item>
+                        <el-button type="primary" v-on:click="registerSubmit">注册</el-button>
+                    </el-form-item>
+                    已有账户？请<a @click="switchForm">登录</a>
+                </el-form>
+            </el-main>
+        </el-container>
+        <el-footer>
+            @CopyRight 2018 by eknows.
+        </el-footer>
+    </div>
+</div>
+<script>
+    let vm = new Vue({
+        el: '#login',
+        data: {
+            loginForm: {
+                name: '',
+                password: ''
+            },
+            loginRules: {
+                name: [
+                    {required: true, message: '用户名不能为空', trigger: 'blur'},
+                ],
+                password: [
+                    {required: true, message: '密码不能为空', trigger: 'blur'}
+                ]
+            },
+            registerForm: {
+                name: '',
+                password: '',
+                rePassword: '',
+                address: '',
+                ip: ''
+            },
+            registerRules: {
+                name: [
+                    {required: true, message: '用户名不能为空', trigger: 'blur'}
+                ],
+                password: [
+                    {required: true, message: '密码不能为空', trigger: 'blur'},
+                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'},
+                ],
+                rePassword: [
+                    {required: true, message: '重复密码不能为空', trigger: 'blur'},
+                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'},
+                    //{validator: this.checkRepeatPass, message: '两次输入的密码不相同', trigger: ['change', 'blur']}
+                ]
+            },
+            /*checkRepeatPass: (rule, value, callback) => {
+                alert(1)
+                const newPass = this.registerForm.password;
+                if(newPass !== value){
+                    callback(new Error('2次输入的密码不一致'));
+                }
+                callback();
+            },*/
+            loginVisible: true,
+            registerVisible: false
+        },
+        methods: {
+            switchForm: function () {
+                this.loginVisible = !this.loginVisible;
+                this.registerVisible = !this.registerVisible;
+            },
+            loginSubmit: function (formName) {
+                this.$refs.loginForm.validate((valid) => {
+                    if (valid) {
+                        console.log("登录：" + JSON.stringify(this.loginForm));
+                        let _this = this; // 为了在ajax中使用this.$message，先把vue的this赋值给_this
+                        $.ajax({
+                            url: 'login',
+                            type: 'POST',
+                            async: true,
+                            data: this.loginForm,
+                            success: function (data) {
+                                console.log("success:" + JSON.stringify(data));
+                                if (data.success) {
+                                    window.localStorage.setItem("user", JSON.stringify(data.data.user));
+                                    window.location.href = "/api/admin";
+                                } else {
+                                    _this.$message.error(data.msg);
+                                }
+                            },
+                            error: function (data) {
+                                console.log("error:" + JSON.stringify(data));
+                            }
+                        });
+                    } else {
+                        console.log('error login!!');
+                        return false;
+                    }
+                });
+            },
+            registerSubmit: function () {
+                console.log("注册：" + JSON.stringify(this.registerForm));
+                this.$refs.registerForm.validate((valid) => {
+                   if (valid) {
+                       console.log("注册：" + JSON.stringify(this.registerForm));
+                       let _this = this; // 为了在ajax中使用this.$message，先把vue的this赋值给_this
+                       $.ajax({
+                           url: 'register',
+                           type: 'POST',
+                           async: true,
+                           data: this.registerForm,
+                           success: function (data) {
+                               console.log("success:" + JSON.stringify(data));
+                               if (data.success) {
+                                   window.localStorage.setItem("user", JSON.stringify(data.data.user));
+                                   window.location.href = "/api/admin";
+                               } else {
+                                   _this.$message.error(data.msg);
+                               }
+                           },
+                           error: function (data) {
+                               console.log("error:" + JSON.stringify(data));
+                           }
+                       });
+                   } else {
+                       console.log("error register!!");
+                       return false;
+                   }
+                });
+            }
+        }
+    });
+</script>
+
+<style>
+    a {
+        color: #409EFF;
+        cursor: pointer;
+        text-decoration-line: underline;
+    }
+</style>
+</body>
+</html>

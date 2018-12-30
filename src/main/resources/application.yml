@@ -1,0 +1,21 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ssm_demo?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false
+    username: root
+    password: root
+    hikari:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    serialization:
+      write-dates-as-timestamps: true
+  thymeleaf:
+    cache: false
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

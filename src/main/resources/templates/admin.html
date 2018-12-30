@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin</title>
+    <script src="./jquery-3.3.1.min.js"></script>
+    <script src="./vue.min.js"></script>
+    <script src="./vue-resource.min.js"></script>
+    <script src="./element-ui/lib/index.js"></script>
+    <link rel="stylesheet" href="./element-ui/lib/theme-chalk/index.css"/>
+    <link rel="icon" type="image/ico" href="./favicon.ico">
+</head>
+<body>
+<div id="admin" class="outer-admin">
+    <el-container>
+        <el-header style="height: 80px; background-color: #296BB5;">
+            <span class="head-text">用户管理系统</span>
+            <div class="head-right">
+                当前登录用户：{{ user.name }}
+                <el-button @click="logout">退出登录</el-button>
+            </div>
+        </el-header>
+        <el-main class="mainTable">
+            <el-table borer
+                      style="width: 100%; margin-top: 10px;"
+                      :data="tableDatas">
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="50"></el-table-column>
+                <el-table-column
+                        prop="name"
+                        label="姓名"></el-table-column>
+                <el-table-column
+                        prop="role"
+                        label="身份"></el-table-column>
+                <el-table-column
+                        prop="address"
+                        label="地址"></el-table-column>
+                <el-table-column
+                        prop="ip"
+                        label="网站"></el-table-column>
+                <el-table-column
+                        prop="lastLoginTime"
+                        label="最后登录"
+                        :formatter="dateFormat"></el-table-column>
+                <el-table-column label="操作" v-if="user.role == 1">
+                    <template slot-scope="scope">
+                        <el-button size="small" icon="el-icon-edit" @click="openEditDialog(scope.row)">编辑</el-button>
+                        <el-button size="small" icon="el-icon-delete" @click="deleteUser(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <el-dialog
+                    title="编辑用户信息"
+                    :visible.sync="dialogVisible"
+                    style="margin: 0 auto; width: 50%;">
+                <el-form>
+                    <el-form ref="userForm" :model="userForm" label-width="80px">
+                        {{userForm.id}}
+                        {{userForm.name}}
+                        {{userForm.password}}
+                        {{userForm.role}}
+                        {{userForm.address}}
+                        {{userForm.ip}}
+                    </el-form>
+                </el-form>
+            </el-dialog>
+        </el-main>
+    </el-container>
+</div>
+
+<script>
+    let vm = new Vue({
+        el: '#admin',
+        data: {
+            user: JSON.parse(window.localStorage.getItem("user")),
+            tableDatas: [],
+            dialogVisible: false,
+            userForm: {
+                id: '',
+                name: '',
+                password: '',
+                role: '',
+                address: '',
+                ip: ''
+            }
+        },
+        mounted: function() {
+            this.query();
+        },
+        methods: {
+            logout: function() {
+                let _this = this;
+                $.ajax({
+                    url: '/api/logout?id=' + _this.user.id,
+                    async: true,
+                    type: 'GET',
+                    success: function (data) {
+                        if (data.success) {
+                            _this.$message.success('退出成功');
+                            window.localStorage.removeItem("user");
+                            window.setTimeout("window.location.href = \"/api\";", 500); // 延迟0.5s后跳转至登录页
+                        } else {
+                            _this.$message.warning(data.msg);
+                        }
+                    },
+                    error: function(data) {
+                        _this.$message.error("系统错误");
+                    }
+                });
+            },
+            query: function (v) {
+                let _this = this;
+                $.ajax({
+                    url: '/api/user/list',
+                    async: true,
+                    type: 'GET',
+                    success: function (data) {
+                        console.log(JSON.stringify(data));
+                        if (data.success) {
+                            _this.tableDatas = data.data.userList;
+                        } else {
+                            _this.$message.warning(data.msg);
+                        }
+                    },
+                    error: function(data) {
+                        _this.$message.error("系统错误");
+                    }
+                });
+            },
+            openEditDialog: function(v) {
+              this.dialogVisible = true;
+              this.userForm = {
+                  id: v.id,
+                  name: v.name,
+                  password: v.password,
+                  role: v.role,
+                  address: v.address,
+                  ip: v.ip
+              }
+            },
+            deleteUser: function(v) {
+                this.$confirm('确认删除用户' + v.name + '？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.delete(v.id);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            delete(id) {
+              let _this = this;
+              $.ajax({
+                  url: 'user/delete/?id=' + id,
+                  type: 'DELETE',
+                  async: true,
+                  success: function (data) {
+                      console.log("success:" + JSON.stringify(data));
+                      if (data.success) {
+                          _this.query();
+                          _this.$message.success("删除成功");
+                      } else {
+                          _this.$message.error(data.msg);
+                      }
+                  },
+                  error: function (data) {
+                      console.log("error:" + JSON.stringify(data));
+                      _this.$message.error("系统错误");
+                  }
+              });
+            },
+            dateFormat(row, column){  //日期格式化
+                let date = row[column.property];
+                if (date == null || date == '') {
+                    return '';
+                }
+                date = new Date(date);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+                let hour = date.getHours();
+                let minute = date.getMinutes();
+                return year + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day) +
+                    ' ' + (hour < 10 ? '0' + hour : hour) + ':' + (minute < 10 ? '0' + minute : minute);
+            },
+        }
+    });
+</script>
+<style>
+    .outer-admin {
+        width: 1200px;
+        margin: 0 auto;
+    }
+    .head-text {
+        font-size: 32px;
+    }
+    .head-right {
+        float: right;
+        margin-top: 20px;
+    }
+    .mainTable {
+        margin: 0 auto;
+        width: 1200px;
+    }
+</style>
+</body>
