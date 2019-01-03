@@ -11,4 +11,10 @@ MYSQL:
 > 2. You need execute the sql file `ssm_demo.sql` under directory `resources` to import the database. 
 Also, you can create the table `user` in other ways.
 
+默认管理员用户（default admin user）：
+```
+name: eknows
+password: '123456'
+```
+
 注：本项目前后端未分离，使用vue.js构建这样一个项目是因为本人正在学习vue。
