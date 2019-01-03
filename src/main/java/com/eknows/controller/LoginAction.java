@@ -75,9 +75,7 @@ public class LoginAction extends CommonAction {
         if (!jsonResult.getSuccess()) {
             return jsonResult;
         }
-        user.setRole(0);
-        user.setLastLoginTime(new Date());
-        userDAO.save(user);
+        userDAO.insert(user);
         user = userDAO.findById(user.getId());
         if (user.getId() != null) {
             HttpSession session = request.getSession(true);

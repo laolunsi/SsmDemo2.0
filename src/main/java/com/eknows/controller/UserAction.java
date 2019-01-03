@@ -1,5 +1,6 @@
 package com.eknows.controller;
 
+import com.eknows.logic.service.UserService;
 import com.eknows.model.bean.common.JsonResult;
 import com.eknows.model.bean.entity.User;
 import com.eknows.model.dao.UserDAO;
@@ -23,6 +24,9 @@ import java.util.List;
 public class UserAction extends CommonAction {
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private UserDAO userDAO;
 
     @GetMapping(value = "list")
@@ -39,17 +43,10 @@ public class UserAction extends CommonAction {
        return jsonResult;
     }
 
-    @PostMapping(value = "add")
+    @PostMapping(value = "save")
     public JsonResult add(User user) {
-        JsonResult jsonResult = verifyUserForm(user);
-        if (!jsonResult.getSuccess()) {
-            return jsonResult;
-        }
-        user.setRole(0);
-        user.setLastLoginTime(new Date());
-        userDAO.save(user);
-        return new JsonResult(user.getId() != null, user.getId() != null ? null : "保存失败");
-
+        // 新增或编辑用户
+        return userService.save(user);
     }
 
     @DeleteMapping(value = "delete")

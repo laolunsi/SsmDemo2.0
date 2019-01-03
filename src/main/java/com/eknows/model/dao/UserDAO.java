@@ -39,11 +39,11 @@ public interface UserDAO {
     public boolean update(User user);
 
     /**
-     * save user
+     * insert user
      * @param user
      * @return
      */
-    public boolean save(User user);
+    public boolean insert(User user);
 
     /**
      * delete user by id

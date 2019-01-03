@@ -33,7 +33,7 @@
                         prop="name"
                         label="姓名"></el-table-column>
                 <el-table-column
-                        prop="role"
+                        prop="roleName"
                         label="身份"></el-table-column>
                 <el-table-column
                         prop="address"
@@ -59,12 +59,19 @@
                     style="margin: 0 auto; width: 50%;">
                 <el-form>
                     <el-form ref="userForm" :model="userForm" label-width="80px">
-                        {{userForm.id}}
-                        {{userForm.name}}
-                        {{userForm.password}}
-                        {{userForm.role}}
-                        {{userForm.address}}
-                        {{userForm.ip}}
+                        <el-form-item label="姓名">
+                            <el-input v-model="userForm.name"></el-input>
+                        </el-form-item>
+                        <el-form-item label="地址">
+                            <el-input v-model="userForm.address"></el-input>
+                        </el-form-item>
+                        <el-form-item label="个人网站">
+                            <el-input v-model="userForm.ip"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button>取消</el-button>
+                            <el-button @click="editUser()">确认</el-button>
+                        </el-form-item>
                     </el-form>
                 </el-form>
             </el-dialog>
@@ -77,8 +84,8 @@
         el: '#admin',
         data: {
             user: JSON.parse(window.localStorage.getItem("user")),
-            tableDatas: [],
             dialogVisible: false,
+            tableDatas: [],
             userForm: {
                 id: '',
                 name: '',
@@ -88,11 +95,8 @@
                 ip: ''
             }
         },
-        mounted: function() {
-            this.query();
-        },
         methods: {
-            logout: function() {
+            logout() {
                 let _this = this;
                 $.ajax({
                     url: '/api/logout?id=' + _this.user.id,
@@ -107,7 +111,7 @@
                             _this.$message.warning(data.msg);
                         }
                     },
-                    error: function(data) {
+                    error: function (data) {
                         _this.$message.error("系统错误");
                     }
                 });
@@ -119,9 +123,19 @@
                     async: true,
                     type: 'GET',
                     success: function (data) {
-                        console.log(JSON.stringify(data));
                         if (data.success) {
-                            _this.tableDatas = data.data.userList;
+                            let userList = data.data.userList;
+                            if (userList != null && userList.length > 0) {
+                                for (let i = 0; i < userList.length; i++) {
+                                    if (userList[i].role == 0) {
+                                        userList[i].roleName = "用户";
+                                    } else if (userList[i].role == 1) {
+                                        userList[i].roleName = "管理员";
+                                    }
+                                }
+                            }
+                            _this.tableDatas = userList;
+                            console.log("tableDatas: " + JSON.stringify(_this.tableDatas));
                         } else {
                             _this.$message.warning(data.msg);
                         }
@@ -132,15 +146,40 @@
                 });
             },
             openEditDialog: function(v) {
-              this.dialogVisible = true;
-              this.userForm = {
-                  id: v.id,
-                  name: v.name,
-                  password: v.password,
-                  role: v.role,
-                  address: v.address,
-                  ip: v.ip
-              }
+                this.userForm = {};
+                this.userForm = {
+                    id: v.id,
+                    name: v.name,
+                    role: v.role,
+                    address: v.address,
+                    ip: v.ip
+                };
+
+                this.dialogVisible = true;
+            },
+            editUser: function(v) {
+                console.log("准备编辑：" + JSON.stringify(this.userForm));
+                let _this = this;
+                $.ajax({
+                    url: 'user/save',
+                    type: 'POST',
+                    async: true,
+                    data: _this.userForm,
+                    success: function (data) {
+                        console.log("success:" + JSON.stringify(data));
+                        if (data.success) {
+                            _this.dialogVisible = false;
+                            _this.query();
+                            _this.$message.success("更新成功");
+                        } else {
+                            _this.$message.error(data.msg);
+                        }
+                    },
+                    error: function (data) {
+                        console.log("error:" + JSON.stringify(data));
+                        _this.$message.error("系统错误");
+                    }
+                });
             },
             deleteUser: function(v) {
                 this.$confirm('确认删除用户' + v.name + '？', '提示', {
@@ -179,7 +218,7 @@
             },
             dateFormat(row, column){  //日期格式化
                 let date = row[column.property];
-                if (date == null || date == '') {
+                if (date == null || date === '') {
                     return '';
                 }
                 date = new Date(date);
@@ -191,6 +230,9 @@
                 return year + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day) +
                     ' ' + (hour < 10 ? '0' + hour : hour) + ':' + (minute < 10 ? '0' + minute : minute);
             },
+        },
+        mounted: function() {
+            this.query();
         }
     });
 </script>

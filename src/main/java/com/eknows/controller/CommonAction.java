@@ -6,6 +6,7 @@ import org.thymeleaf.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Date;
 
 /**
  * @author zfh
@@ -27,6 +28,7 @@ public class CommonAction {
 
     /**
      * 检验要保存的用户数据
+     * 如果合法，则设置其他默认值
      * @param user
      * @return
      */
@@ -39,6 +41,8 @@ public class CommonAction {
             return new JsonResult(false, "密码不能为空");
         }
 
+        user.setRole(0);
+        user.setLastLoginTime(new Date());
         return new JsonResult(true);
     }
 }
