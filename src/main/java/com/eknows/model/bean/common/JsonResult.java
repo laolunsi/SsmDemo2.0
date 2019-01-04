@@ -30,6 +30,12 @@ public class JsonResult implements Serializable {
         this.msg = msg;
     }
 
+    public JsonResult(boolean success, String msg, Object data) {
+        this.success = success;
+        this.msg = msg;
+        this.data = data;
+    }
+
     public void put(Object key, Object value) {
         if (data == null) {
             data = new HashMap<>();

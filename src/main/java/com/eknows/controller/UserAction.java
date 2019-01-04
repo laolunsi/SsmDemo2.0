@@ -5,13 +5,10 @@ import com.eknows.model.bean.common.JsonResult;
 import com.eknows.model.bean.entity.User;
 import com.eknows.model.dao.UserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -49,8 +46,41 @@ public class UserAction extends CommonAction {
         return userService.save(user);
     }
 
-    @DeleteMapping(value = "delete")
-    public JsonResult delete(Integer id, HttpServletRequest request) {
+    @PutMapping(value = "change_password")
+    public JsonResult changePassword(HttpServletRequest request, String oldPass, String newPass, String reNewPass) {
+        User user = getUserFromSession(request);
+        if (user == null) {
+            return new JsonResult(false, "登录过期");
+        }
+        user = userService.findById(user.getId());
+        if (user == null) {
+            return new JsonResult(false, "用户不存在或已被删除");
+        } else if (!user.getPassword().equals(oldPass)) {
+            return new JsonResult(false, "原密码错误");
+        }
+
+        if (StringUtils.isEmpty(oldPass)) {
+            return new JsonResult(false, "原密码不能为空");
+        }
+
+        if (StringUtils.isEmpty(newPass)) {
+            return new JsonResult(false, "新密码不能为空");
+        }
+
+        if (!newPass.equals(reNewPass)) {
+            return new JsonResult(false, "两次输入的密码不一致");
+        }
+
+        if (oldPass.equals(newPass)) {
+            return new JsonResult(false, "新密码不能与旧密码相同");
+        }
+
+        boolean res = userService.updatePassword(user.getId(), newPass);
+        return new JsonResult(res, res ? null : "修改失败");
+    }
+
+    @DeleteMapping(value = "delete/{id}")
+    public JsonResult delete(@PathVariable Integer id, HttpServletRequest request) {
         if (id == null) {
             return new JsonResult(false, "操作错误");
         }

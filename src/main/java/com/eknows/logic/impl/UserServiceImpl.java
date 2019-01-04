@@ -43,7 +43,20 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    //
+    @Override
+    public User findById(int id) {
+        return userDAO.findById(id);
+    }
+
+    @Override
+    public boolean updatePassword(int id, String newPass) {
+        User user = new User();
+        user.setId(id);
+        user.setPassword(newPass);
+        return userDAO.update(user);
+    }
+
+    // --- private methods ---
     /**
      * 检验要保存的用户数据
      * 如果合法，则设置其他默认值

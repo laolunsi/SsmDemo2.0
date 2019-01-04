@@ -17,8 +17,16 @@
         <el-header style="height: 80px; background-color: #296BB5;">
             <span class="head-text">用户管理系统</span>
             <div class="head-right">
-                当前登录用户：{{ user.name }}
-                <el-button @click="logout">退出登录</el-button>
+                <el-dropdown @command="dropDownCommand">
+                    <span class="el-dropdown-link" style="color: #303133">
+                        {{ user.name }}<i class="el-icon-arrow-down el-icon--right"></i>
+                    </span>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item command="a">修改个人信息</el-dropdown-item>
+                        <el-dropdown-item command="b">修改密码</el-dropdown-item>
+                        <el-dropdown-item command="c">退出登录</el-dropdown-item>
+                    </el-dropdown-menu>
+                </el-dropdown>
             </div>
         </el-header>
         <el-main class="mainTable">
@@ -54,25 +62,44 @@
             </el-table>
 
             <el-dialog
+                    title="修改密码"
+                    :visible.sync="passDialogVisible"
+                    style="margin: 0 auto; width: 60%;">
+                <el-form ref="passForm" :model="passForm" label-width="80px">
+                    <el-form-item label="旧密码">
+                        <el-input v-model="passForm.oldPass" type="password"></el-input>
+                    </el-form-item>
+                    <el-form-item label="新密码">
+                        <el-input v-model="passForm.newPass" type="password"></el-input>
+                    </el-form-item>
+                    <el-form-item label="重复新密码">
+                        <el-input v-model="passForm.reNewPass" type="password"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button @click="cancel('pass')">取消</el-button>
+                        <el-button @click="changePassword()">确认</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-dialog>
+
+            <el-dialog
                     title="编辑用户信息"
-                    :visible.sync="dialogVisible"
-                    style="margin: 0 auto; width: 50%;">
-                <el-form>
-                    <el-form ref="userForm" :model="userForm" label-width="80px">
-                        <el-form-item label="姓名">
-                            <el-input v-model="userForm.name"></el-input>
-                        </el-form-item>
-                        <el-form-item label="地址">
-                            <el-input v-model="userForm.address"></el-input>
-                        </el-form-item>
-                        <el-form-item label="个人网站">
-                            <el-input v-model="userForm.ip"></el-input>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button>取消</el-button>
-                            <el-button @click="editUser()">确认</el-button>
-                        </el-form-item>
-                    </el-form>
+                    :visible.sync="editDialogVisible"
+                    style="margin: 0 auto; width: 60%;">
+                <el-form ref="userForm" :model="userForm" label-width="80px">
+                    <el-form-item label="姓名">
+                        <el-input v-model="userForm.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="地址">
+                        <el-input v-model="userForm.address"></el-input>
+                    </el-form-item>
+                    <el-form-item label="个人网站">
+                        <el-input v-model="userForm.ip"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button @click="cancel('edit')">取消</el-button>
+                        <el-button @click="editUser()">确认</el-button>
+                    </el-form-item>
                 </el-form>
             </el-dialog>
         </el-main>
@@ -84,8 +111,15 @@
         el: '#admin',
         data: {
             user: JSON.parse(window.localStorage.getItem("user")),
-            dialogVisible: false,
+            passDialogVisible: false,
+            editDialogVisible: false,
             tableDatas: [],
+            passForm: {
+                // 修改密码的表单
+                oldPass: '',
+                newPass: '',
+                reNewPass: ''
+            },
             userForm: {
                 id: '',
                 name: '',
@@ -145,7 +179,23 @@
                     }
                 });
             },
+            dropDownCommand: function(v) {
+                // 右侧下拉菜单
+                if (v == 'a') {
+                    this.openEditDialog(this.user);
+                } else if (v == 'b') {
+                    this.openPasswordDialog();
+                } else if (v == 'c') {
+                    this.logout();
+                }
+            },
+            openPasswordDialog: function() {
+               console.log("修改密码");
+               this.passForm = {};
+               this.passDialogVisible = true;
+            },
             openEditDialog: function(v) {
+                console.log("openEditDialog");
                 this.userForm = {};
                 this.userForm = {
                     id: v.id,
@@ -155,7 +205,30 @@
                     ip: v.ip
                 };
 
-                this.dialogVisible = true;
+                this.editDialogVisible = true;
+            },
+            changePassword: function() {
+              console.log("准备修改用户密码：" + JSON.stringify(this.passForm));
+                let _this = this;
+                $.ajax({
+                    url: 'user/change_password',
+                    type: 'PUT',
+                    async: true,
+                    data: _this.passForm,
+                    success: function (data) {
+                        console.log("success:" + JSON.stringify(data));
+                        if (data.success) {
+                            _this.passDialogVisible = false;
+                            _this.$message.success("修改成功");
+                        } else {
+                            _this.$message.error(data.msg);
+                        }
+                    },
+                    error: function (data) {
+                        console.log("error:" + JSON.stringify(data));
+                        _this.$message.error("系统错误");
+                    }
+                });
             },
             editUser: function(v) {
                 console.log("准备编辑：" + JSON.stringify(this.userForm));
@@ -168,7 +241,7 @@
                     success: function (data) {
                         console.log("success:" + JSON.stringify(data));
                         if (data.success) {
-                            _this.dialogVisible = false;
+                            _this.editDialogVisible = false;
                             _this.query();
                             _this.$message.success("更新成功");
                         } else {
@@ -230,6 +303,17 @@
                 return year + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day) +
                     ' ' + (hour < 10 ? '0' + hour : hour) + ':' + (minute < 10 ? '0' + minute : minute);
             },
+            cancel: function (v) {
+                if (v == 'pass') {
+                    // 取消修改密码
+                    this.passForm = {};
+                    this.passDialogVisible = false;
+                } else if (v == 'edit') {
+                    // 取消编辑用户信息
+                    this.userForm = {};
+                    this.editDialogVisible = false;
+                }
+            }
         },
         mounted: function() {
             this.query();

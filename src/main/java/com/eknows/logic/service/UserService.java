@@ -10,5 +10,20 @@ public interface UserService {
      * @param user
      * @return
      */
-    public JsonResult save(User user);
+    JsonResult save(User user);
+
+    /**
+     * 根据id查询
+     * @param id
+     * @return
+     */
+    User findById(int id);
+
+    /**
+     * 更新密码
+     * @param id
+     * @param newPass
+     * @return
+     */
+    boolean updatePassword(int id, String newPass);
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.eknows.model.dao.UserDAO">
     <select id="find" resultType="com.eknows.model.bean.entity.User">
-        SELECT  id, name, role, address, ip, lastLoginTime
+        SELECT  id, name, password, role, address, ip, lastLoginTime
         FROM user
         WHERE name = #{name} AND password = #{password}
     </select>
@@ -13,7 +13,7 @@
     </select>
 
     <select id="findById" resultType="com.eknows.model.bean.entity.User">
-        SELECT id, name, role, address, ip, lastLoginTime
+        SELECT id, name, password, role, address, ip, lastLoginTime
         FROM user
         WHERE id = #{id}
     </select>

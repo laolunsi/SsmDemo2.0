@@ -28,6 +28,6 @@ public class Test {
         user.setPassword("123456");
         user.setAddress("不知道的");
         user.setLastLoginTime(new Date());
-        userDAO.save(user);
+        userDAO.insert(user);
     }
 }
