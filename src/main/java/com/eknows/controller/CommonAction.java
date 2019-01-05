@@ -35,14 +35,18 @@ public class CommonAction {
     public static JsonResult verifyUserForm(User user) {
         if (user == null) {
             return new JsonResult(false, "操作错误");
-        } else if (StringUtils.isEmpty(user.getName())) {
-            return new JsonResult(false, "用户名不能为空");
-        } else if (StringUtils.isEmpty(user.getPassword())) {
-            return new JsonResult(false, "密码不能为空");
         }
 
-        user.setRole(0);
-        user.setLastLoginTime(new Date());
+        if (user.getId() == null) {
+            // 仅对新增用户进行判定
+            if (StringUtils.isEmpty(user.getName())) {
+                return new JsonResult(false, "用户名不能为空");
+            } else if (StringUtils.isEmpty(user.getPassword())) {
+                return new JsonResult(false, "密码不能为空");
+            }
+            user.setRole(0); // 设置默认为普通用户
+            user.setLastLoginTime(new Date()); // 设置最新的登录时间
+        }
         return new JsonResult(true);
     }
 }

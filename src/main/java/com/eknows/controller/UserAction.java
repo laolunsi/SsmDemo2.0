@@ -23,9 +23,6 @@ public class UserAction extends CommonAction {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private UserDAO userDAO;
-
     @GetMapping(value = "list")
     @ResponseBody
     public JsonResult list(HttpServletRequest request) {
@@ -35,7 +32,7 @@ public class UserAction extends CommonAction {
        }
 
        JsonResult jsonResult = new JsonResult(true);
-       List<User> userList = userDAO.findAll();
+       List<User> userList = userService.findAll();
        jsonResult.put("userList", userList);
        return jsonResult;
     }
@@ -43,7 +40,11 @@ public class UserAction extends CommonAction {
     @PostMapping(value = "save")
     public JsonResult add(User user) {
         // 新增或编辑用户
-        return userService.save(user);
+        user =  userService.save(user);
+        if (user != null && user.getId() != null) {
+            return new JsonResult(true);
+        }
+        return new JsonResult(false, "保存失败");
     }
 
     @PutMapping(value = "change_password")
@@ -89,14 +90,7 @@ public class UserAction extends CommonAction {
             return new JsonResult(false, "没有权限");
         }
 
-        User itemUser = userDAO.findById(id);
-        if (itemUser == null) {
-            return new JsonResult(false, "用户不存在");
-        } else if (itemUser.getId().equals(user.getId())) {
-            return new JsonResult(false, "你是要自己删除自己嘛？");
-        }
-
-        boolean res = userDAO.deleteById(id);
+        boolean res = userService.delete(id);
         return new JsonResult(res, res ? null : "删除失败");
     }
 

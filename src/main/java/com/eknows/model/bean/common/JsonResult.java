@@ -11,6 +11,8 @@ import java.util.Map;
  */
 public class JsonResult implements Serializable {
 
+    public static final int ACCESS_TOKEN_INVALID = 50;
+
     private static final long serialVersionUID = 7911919307011379110L;
     private Integer code;
     private Boolean success;
@@ -81,5 +83,12 @@ public class JsonResult implements Serializable {
     public void setData(Object data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "{\"success\":" + success + ",\"msg\":" + msg + ",\"code\":" + code
+            + ",\"data\":" + data + "}";
+    }
+
 
 }

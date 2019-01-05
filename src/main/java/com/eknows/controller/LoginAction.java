@@ -1,5 +1,6 @@
 package com.eknows.controller;
 
+import com.eknows.logic.service.UserService;
 import com.eknows.model.bean.common.JsonResult;
 import com.eknows.model.bean.entity.User;
 import com.eknows.model.dao.UserDAO;
@@ -19,8 +20,7 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
- * 注：由于功能比较简单，故省略了service层，
- * 由Controller直接调用DAO层
+ * 登录
  * @author zfh
  * @version 1.0
  * @date 2018/12/26 14:33
@@ -30,17 +30,13 @@ import java.util.Date;
 public class LoginAction extends CommonAction {
 
     @Autowired
-    private UserDAO userDAO;
+    private UserService userService;
 
     @GetMapping(value = "")
-    public ModelAndView index(HttpServletRequest request, HttpServletResponse response) {
+    public ModelAndView index(HttpServletRequest request, HttpServletResponse response) throws IOException {
         User user = getUserFromSession(request);
         if (user != null && user.getId() != null) {
-            try {
-                response.sendRedirect(request.getContextPath() + "/admin"); // 重定向
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            response.sendRedirect(request.getContextPath() + "/admin"); // 重定向
         }
         return new ModelAndView("index");
     }
@@ -54,15 +50,13 @@ public class LoginAction extends CommonAction {
             return new JsonResult(false, "密码不能为空");
         }
 
-        User user = userDAO.find(name, password);
+        User user = userService.handleLogin(name, password);
         if (user != null) {
-            user.setLastLoginTime(new Date());
-            userDAO.update(user);
             JsonResult jsonResult = new JsonResult(true);
             jsonResult.put("user", user);
             HttpSession session = request.getSession(true);
             session.setAttribute("user", user);
-            session.setMaxInactiveInterval(12 * 60 * 60);
+            session.setMaxInactiveInterval(12 * 60 * 60); // 设置过期时间为12h
             return jsonResult;
         }
         return new JsonResult(false, "用户名或密码错误");
@@ -75,9 +69,8 @@ public class LoginAction extends CommonAction {
         if (!jsonResult.getSuccess()) {
             return jsonResult;
         }
-        userDAO.insert(user);
-        user = userDAO.findById(user.getId());
-        if (user.getId() != null) {
+        user = userService.save(user); // 返回保存的对象
+        if (user != null && user.getId() != null) {
             HttpSession session = request.getSession(true);
             session.setAttribute("user", user);
             jsonResult.put("user", user);
