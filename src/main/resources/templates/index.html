@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -36,7 +35,7 @@
                         <el-input v-model="loginForm.name"></el-input>
                     </el-form-item>
                     <el-form-item label="密码" prop="password">
-                        <el-input type="password" v-model="loginForm.password"></el-input>
+                        <el-input type="password" v-model="loginForm.password" suffix-icon="el-icon-view"></el-input>
                     </el-form-item>
 
                     <el-form-item>
@@ -84,7 +83,7 @@
             },
             loginRules: {
                 name: [
-                    {required: true, message: '用户名不能为空', trigger: 'blur'},
+                    {required: true, message: '用户名不能为空', trigger: 'blur'}
                 ],
                 password: [
                     {required: true, message: '密码不能为空', trigger: 'blur'}
@@ -103,22 +102,13 @@
                 ],
                 password: [
                     {required: true, message: '密码不能为空', trigger: 'blur'},
-                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'},
+                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'}
                 ],
                 rePassword: [
                     {required: true, message: '重复密码不能为空', trigger: 'blur'},
-                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'},
-                    //{validator: this.checkRepeatPass, message: '两次输入的密码不相同', trigger: ['change', 'blur']}
+                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'}
                 ]
             },
-            /*checkRepeatPass: (rule, value, callback) => {
-                alert(1)
-                const newPass = this.registerForm.password;
-                if(newPass !== value){
-                    callback(new Error('2次输入的密码不一致'));
-                }
-                callback();
-            },*/
             loginVisible: true,
             registerVisible: false
         },
@@ -127,10 +117,10 @@
                 this.loginVisible = !this.loginVisible;
                 this.registerVisible = !this.registerVisible;
             },
-            loginSubmit: function (formName) {
+            loginSubmit: function () {
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
-                        console.log("登录：" + JSON.stringify(this.loginForm));
+                        console.log('登录：' + JSON.stringify(this.loginForm));
                         let _this = this; // 为了在ajax中使用this.$message，先把vue的this赋值给_this
                         $.ajax({
                             url: 'login',
@@ -138,16 +128,16 @@
                             async: true,
                             data: this.loginForm,
                             success: function (data) {
-                                console.log("success:" + JSON.stringify(data));
+                                console.log('success:' + JSON.stringify(data));
                                 if (data.success) {
-                                    window.localStorage.setItem("user", JSON.stringify(data.data.user));
-                                    window.location.href = "/api/admin";
+                                    window.localStorage.setItem('user', JSON.stringify(data.data.user));
+                                    window.location.href = '/api/admin';
                                 } else {
                                     _this.$message.error(data.msg);
                                 }
                             },
                             error: function (data) {
-                                console.log("error:" + JSON.stringify(data));
+                                console.log('error:' + JSON.stringify(data));
                             }
                         });
                     } else {
@@ -157,10 +147,14 @@
                 });
             },
             registerSubmit: function () {
-                console.log("注册：" + JSON.stringify(this.registerForm));
+                console.log('注册：' + JSON.stringify(this.registerForm));
                 this.$refs.registerForm.validate((valid) => {
                    if (valid) {
-                       console.log("注册：" + JSON.stringify(this.registerForm));
+                       if (this.registerForm.password !== this.registerForm.rePassword) {
+                           this.$message.warning('两次输入的密码不相同');
+                           return false;
+                       }
+                       console.log('注册：' + JSON.stringify(this.registerForm));
                        let _this = this; // 为了在ajax中使用this.$message，先把vue的this赋值给_this
                        $.ajax({
                            url: 'register',
@@ -168,20 +162,20 @@
                            async: true,
                            data: this.registerForm,
                            success: function (data) {
-                               console.log("success:" + JSON.stringify(data));
+                               console.log('success:' + JSON.stringify(data));
                                if (data.success) {
-                                   window.localStorage.setItem("user", JSON.stringify(data.data.user));
-                                   window.location.href = "/api/admin";
+                                   window.localStorage.setItem('user', JSON.stringify(data.data.user));
+                                   window.location.href = '/api/admin';
                                } else {
                                    _this.$message.error(data.msg);
                                }
                            },
                            error: function (data) {
-                               console.log("error:" + JSON.stringify(data));
+                               console.log('error:' + JSON.stringify(data));
                            }
                        });
                    } else {
-                       console.log("error register!!");
+                       console.log('error register!!');
                        return false;
                    }
                 });

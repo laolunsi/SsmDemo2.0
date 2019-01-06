@@ -2,7 +2,7 @@ package com.eknows.controller;
 
 import com.eknows.model.bean.common.JsonResult;
 import com.eknows.model.bean.entity.User;
-import org.thymeleaf.util.StringUtils;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;

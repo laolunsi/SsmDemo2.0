@@ -3,7 +3,6 @@ package com.eknows.controller;
 import com.eknows.logic.service.UserService;
 import com.eknows.model.bean.common.JsonResult;
 import com.eknows.model.bean.entity.User;
-import com.eknows.model.dao.UserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
@@ -29,6 +28,9 @@
                 </el-dropdown>
             </div>
         </el-header>
+        <el-form style="margin-top: 20px">
+          <el-button @click="openEditDialog()">新增用户</el-button>
+        </el-form>
         <el-main class="mainTable">
             <el-table borer
                       style="width: 100%; margin-top: 10px;"
@@ -64,20 +66,20 @@
             <el-dialog
                     title="修改密码"
                     :visible.sync="passDialogVisible"
-                    style="margin: 0 auto; width: 60%;">
-                <el-form ref="passForm" :model="passForm" label-width="80px">
-                    <el-form-item label="旧密码">
+                    class="dialog">
+                <el-form ref="passForm" :model="passForm" :rules="passFormRules" label-width="100px">
+                    <el-form-item label="旧密码" prop="oldPass">
                         <el-input v-model="passForm.oldPass" type="password"></el-input>
                     </el-form-item>
-                    <el-form-item label="新密码">
+                    <el-form-item label="新密码" prop="newPass">
                         <el-input v-model="passForm.newPass" type="password"></el-input>
                     </el-form-item>
-                    <el-form-item label="重复新密码">
+                    <el-form-item label="重复新密码" prop="reNewPass">
                         <el-input v-model="passForm.reNewPass" type="password"></el-input>
                     </el-form-item>
                     <el-form-item>
-                        <el-button @click="cancel('pass')">取消</el-button>
-                        <el-button @click="changePassword()">确认</el-button>
+                        <el-button type="primary" @click="cancel('pass')">取消</el-button>
+                        <el-button type="primary" @click="changePassword()">确认</el-button>
                     </el-form-item>
                 </el-form>
             </el-dialog>
@@ -85,10 +87,13 @@
             <el-dialog
                     title="编辑用户信息"
                     :visible.sync="editDialogVisible"
-                    style="margin: 0 auto; width: 60%;">
+                    class="dialog">
                 <el-form ref="userForm" :model="userForm" label-width="80px">
                     <el-form-item label="姓名">
                         <el-input v-model="userForm.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码" v-if="!userForm.id">
+                        <el-input v-model="userForm.password"></el-input>
                     </el-form-item>
                     <el-form-item label="地址">
                         <el-input v-model="userForm.address"></el-input>
@@ -97,8 +102,8 @@
                         <el-input v-model="userForm.ip"></el-input>
                     </el-form-item>
                     <el-form-item>
-                        <el-button @click="cancel('edit')">取消</el-button>
-                        <el-button @click="editUser()">确认</el-button>
+                        <el-button type="primary" @click="cancel('edit')">取消</el-button>
+                        <el-button type="primary" @click="editUser()">确认</el-button>
                     </el-form-item>
                 </el-form>
             </el-dialog>
@@ -119,6 +124,19 @@
                 oldPass: '',
                 newPass: '',
                 reNewPass: ''
+            },
+            passFormRules: {
+                oldPass: [
+                    {required: true, message: '原密码不能为空', trigger: 'blur'}
+                ],
+                newPass: [
+                    {required: true, message: '新密码不能为空', trigger: 'blur'},
+                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'}
+                ],
+                reNewPass: [
+                    {required: true, message: '重复密码不能为空', trigger: 'blur'},
+                    {min: 6, max: 12, message: '密码长度应该是6到12位', trigger: 'blur'}
+                ]
             },
             userForm: {
                 id: '',
@@ -181,11 +199,11 @@
             },
             dropDownCommand: function(v) {
                 // 右侧下拉菜单
-                if (v == 'a') {
+                if (v === 'a') {
                     this.openEditDialog(this.user);
-                } else if (v == 'b') {
+                } else if (v === 'b') {
                     this.openPasswordDialog();
-                } else if (v == 'c') {
+                } else if (v === 'c') {
                     this.logout();
                 }
             },
@@ -197,40 +215,63 @@
             openEditDialog: function(v) {
                 console.log("openEditDialog");
                 this.userForm = {};
-                this.userForm = {
+                if (v!= null) {
+                  this.userForm = {
                     id: v.id,
                     name: v.name,
                     role: v.role,
                     address: v.address,
                     ip: v.ip
-                };
+                  };
+                }
 
                 this.editDialogVisible = true;
             },
             changePassword: function() {
-              console.log("准备修改用户密码：" + JSON.stringify(this.passForm));
-                let _this = this;
-                $.ajax({
-                    url: 'user/change_password',
-                    type: 'PUT',
-                    async: true,
-                    data: _this.passForm,
-                    success: function (data) {
-                        console.log("success:" + JSON.stringify(data));
-                        if (data.success) {
-                            _this.passDialogVisible = false;
-                            _this.$message.success("修改成功");
-                        } else {
-                            _this.$message.error(data.msg);
-                        }
-                    },
-                    error: function (data) {
-                        console.log("error:" + JSON.stringify(data));
-                        _this.$message.error("系统错误");
-                    }
+                this.$refs.passForm.validate((valid) => {
+                   if (valid) {
+                       if (this.passForm.newPass !== this.passForm.reNewPass) {
+                           this.$message.warning("两次输入的密码不一致");
+                           return false;
+                       }
+                       console.log("准备修改用户密码：" + JSON.stringify(this.passForm));
+                       let _this = this;
+                       $.ajax({
+                           url: 'user/change_password',
+                           type: 'PUT',
+                           async: true,
+                           data: _this.passForm,
+                           success: function (data) {
+                               console.log("success:" + JSON.stringify(data));
+                               if (data.success) {
+                                   _this.passDialogVisible = false;
+                                   _this.$message.success("修改成功");
+                               } else {
+                                   _this.$message.error(data.msg);
+                               }
+                           },
+                           error: function (data) {
+                               console.log("error:" + JSON.stringify(data));
+                               _this.$message.error("系统错误");
+                           }
+                       });
+                   } else {
+                       console.log('error change!!');
+                       return false;
+                   }
                 });
             },
-            editUser: function(v) {
+            editUser: function() {
+                if (!this.userForm.id) {
+                    if (!this.userForm.name) {
+                        this.$message.warning("用户名不能为空");
+                        return false;
+                    }
+                    if (!this.userForm.password) {
+                        this.$message.warning("密码不能为空");
+                        return false;
+                    }
+                }
                 console.log("准备编辑：" + JSON.stringify(this.userForm));
                 let _this = this;
                 $.ajax({
@@ -271,7 +312,7 @@
             delete(id) {
               let _this = this;
               $.ajax({
-                  url: 'user/delete/?id=' + id,
+                  url: 'user/delete/' + id,
                   type: 'DELETE',
                   async: true,
                   success: function (data) {
@@ -335,6 +376,11 @@
     .mainTable {
         margin: 0 auto;
         width: 1200px;
+    }
+
+    .dialog {
+        margin: 0 auto;
+        width: 800px;
     }
 </style>
 </body>
