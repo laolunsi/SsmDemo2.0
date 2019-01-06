@@ -111,7 +111,7 @@
     "vue-template-compiler": "^2.5.2",
     "vue-template-es2015-compiler": "^1.6.0",
     "webpack": "^3.7.1",
-    "webpack-dev-server": "^3.1.1",
+    "webpack-dev-server": "^3.1.11",
     "webpack-node-externals": "^1.6.0"
   },
   "faas": {
