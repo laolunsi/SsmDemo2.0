@@ -6,10 +6,9 @@ A SpringBoot2.0 + SSM Demo Project, implements CRUD operations.
 后端：SpringBoot2.0 + SSM Framework
 
 MYSQL: 
-> 1. You must create the database `ssm_demo`. For exmaple, you can use sql follows: `CREATE DATABASE IF NOT EXISTS `ssm_demo` default character set utf8 COLLATE utf8_general_ci;`
+> 1. 必须创建数据库 `ssm_demo`. 比如, 你可以使用: `CREATE DATABASE IF NOT EXISTS `ssm_demo` default character set utf8 COLLATE utf8_general_ci;`
 
-> 2. You need execute the sql file `ssm_demo.sql` under directory `resources` to import the database. 
-Also, you can create the table `user` in other ways.
+> 2. 需要执行`resources`文件夹下的`ssm_demo.sql`来导入user表及默认数据。 
 
 默认管理员用户（default admin user）：
 ```
